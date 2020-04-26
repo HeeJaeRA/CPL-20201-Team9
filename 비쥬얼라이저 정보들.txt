@@ -1,0 +1,14 @@
+Android Visualizer 구현 충돌
+https://bugsdb.com/_ko/debug/02616b62ec75eaf75fa47c10e68ed0a3
+
+**내가 참고한 예제 코드
+Create audio Visualizer for MediaPlayer
+http://android-er.blogspot.com/2015/02/create-audio-visualizer-for-mediaplayer.html
+
+*다른 사람들이 비쥬얼라이저를 사용한 코드 모음집
+Java Code Examples for android.media.audiofx.Visualizer
+https://www.programcreek.com/java-api-examples/index.php?api=android.media.audiofx.Visualizer
+
+**참고하면 좋을 예제코드
+Visualiser – Part 1
+https://blog.stylingandroid.com/visualiser-part1/
