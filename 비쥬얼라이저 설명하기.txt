@@ -1,0 +1,126 @@
+<<비쥬얼라이저를 나타낼 뷰 설정하기>>
+
+1. 메인에서 이렇게 선언하기
+mVisualizerView = (VisualizerView) findViewById(R.id.myvisualizerview);
+
+2. VisualizerView 자바파일 만들기. 만약에 뷰를 안만들고, 그냥 activity_main에 표시하고 싶다면
+onCreate에 VisualizerView안에 있는 코드를 빼와서 만들면 될거에요.
+
+public class VisualizerView extends View {
+//변수 선언
+ private byte[] mBytes;
+ private float[] mPoints;
+ private Rect mRect = new Rect();
+ private Paint mForePaint = new Paint();
+
+public VisualizerView(Context context) {
+  super(context);
+  init();
+ }
+
+ public VisualizerView(Context context, AttributeSet attrs) {
+  super(context, attrs);
+  init();
+ }
+
+ public VisualizerView(Context context, AttributeSet attrs, int defStyleAttr) {
+  super(context, attrs, defStyleAttr);
+  init();
+ }
+
+ private void init() {
+  mBytes = null;
+  mForePaint.setStrokeWidth(1f);
+  mForePaint.setAntiAlias(true);
+  mForePaint.setColor(Color.rgb(0, 128, 255));
+ }
+
+ public void updateVisualizer(byte[] bytes) {
+  mBytes = bytes;
+  invalidate();
+ }
+
+////제 생각에는 이걸 좀 변형하면 시간당 주파수 그래프를 그릴 수 있을 것 같아요.
+ @Override
+ protected void onDraw(Canvas canvas) {
+  super.onDraw(canvas);
+  if (mBytes == null) {
+   return;
+  }
+  if (mPoints == null || mPoints.length < mBytes.length * 4) {
+   mPoints = new float[mBytes.length * 4];
+  }
+  mRect.set(0, 0, getWidth(), getHeight());
+  for (int i = 0; i < mBytes.length - 1; i++) {
+   mPoints[i * 4] = mRect.width() * i / (mBytes.length - 1);
+   mPoints[i * 4 + 1] = mRect.height() / 2
+     + ((byte) (mBytes[i] + 128)) * (mRect.height() / 2) / 128;
+   mPoints[i * 4 + 2] = mRect.width() * (i + 1) / (mBytes.length - 1);
+   mPoints[i * 4 + 3] = mRect.height() / 2
+     + ((byte) (mBytes[i + 1] + 128)) * (mRect.height() / 2)
+     / 128;
+  }
+  canvas.drawLines(mPoints, mForePaint);
+ }
+
+}
+
+
+
+<<오디오 초기화&설정하기>>
+
+<mediaplayer생성하기>
+setVolumeControlStream(AudioManager.STREAM_MUSIC); //안해줘도 상관없긴함
+mMediaPlayer = MediaPlayer.create(this, R.raw.test);
+
+
+<visualizer 생성하고 설정하기>
+1. 객체 생성하기
+Visualizer(int audioSession)
+*audioSession
+: 0일 경우, 오디오 출력 믹스가 시각화.
+  0이 아닌 경우, 특정 오디오 MediaPlayer또는 AudioTrack이 오디오 세션 표시
+(예시 코드)mVisualizer = new Visualizer(mediaPlayer.getAudioSessionId());
+
+2. 비쥬얼라이저 표현 정하기
+표현 방법은 두가지로 나뉜다. 파형 데이터, 주파수 데이터
+파형 데이터는 0의 값이 중간에, 주파수 데이터는 0의 값이 아래에 있다
+파형 데이터 :이 getWaveForm(byte[])방법 을 사용하여 연속 8 비트 (부호없는) 모노 샘플
+주파수 데이터 :이 getFft(byte[])방법 을 사용하여 8 비트 크기 FFT
+
+
+2-1. 비쥬얼라이저로 표현할 범위 정하기
+너무 큰 범위를 잡으면 안되니 적당한 범위를 잡자
+getCaptureSizeRange()로 범위를알아내고, 
+setCaptureSize로 캡쳐 범위를 설정한다.
+그리고  setDataCaptureListener-> OnDataCaptureListener를 차례로 열어서
+해당 범위를 비쥬얼라이저에게 넣는다.
+
+(예시코드) Fft로 표현하는 예제입니다 주의!!!!
+mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+  mVisualizer.setDataCaptureListener(
+    new Visualizer.OnDataCaptureListener() {
+     public void onWaveFormDataCapture(Visualizer visualizer,
+       byte[] bytes, int samplingRate) {
+      mVisualizerView.updateVisualizer(bytes); //Visualizer를 표시할 View에 대이터 전달
+     }
+
+     public void onFftDataCapture(Visualizer visualizer,
+       byte[] bytes, int samplingRate) {
+     }
+    }, Visualizer.getMaxCaptureRate() / 2, true, false);
+ }
+
+<미디어 플레이어에 setOnCompletionListener 설정하기>
+데이터를 캡처하기 전에 setEnabled(boolean)메서드 를 호출하여 Visualizer를 활성화해야합니다 . 데이터 캡처가 더 이상 필요하지 않으면 Visualizer를 비활성화해야합니다.
+
+mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+     public void onCompletion(MediaPlayer mediaPlayer) {
+      mVisualizer.setEnabled(false);
+     }
+    });
+  mMediaPlayer.start();
+
+
+
+
