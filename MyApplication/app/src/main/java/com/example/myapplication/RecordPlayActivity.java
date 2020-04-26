@@ -50,13 +50,12 @@ public class RecordPlayActivity extends AppCompatActivity {
 //        File internalStorage = Environment.getExternalStorageDirectory();
         File sdCard = Environment.getExternalStorageDirectory();
 //        InputStream sdCard = getResources().openRawResource( R.raw.toggi);
-//
         file = new File(sdCard, filename);
-        
-//        ///*
-//        String filePath = file.getAbsolutePath();
-//        Log.e("MainActivity", "저장 파일 경로 :" + filePath); // 저장 파일 경로 : /storage/emulated/0/recorded.mp4
-//        //*/
+
+
+        String filePath = file.getAbsolutePath();
+        Log.e("MainActivity", "저장 파일 경로 :" + filePath); // 저장 파일 경로 : /storage/emulated/0/recorded.mp4
+
 
         tarsosDSPAudioFormat=new TarsosDSPAudioFormat(TarsosDSPAudioFormat.Encoding.PCM_SIGNED,
                 22050,
@@ -67,27 +66,27 @@ public class RecordPlayActivity extends AppCompatActivity {
                 ByteOrder.BIG_ENDIAN.equals(ByteOrder.nativeOrder()));
 
         pitchTextView = findViewById(R.id.pitchTextView);
-        //recordButton = findViewById(R.id.recordButton);
+        recordButton = findViewById(R.id.recordButton);
         playButton = findViewById(R.id.playButton);
 
         //record button
-//        recordButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(!isRecording)
-//                {
-//                    recordAudio();
-//                    isRecording = true;
-//                    recordButton.setText("중지");
-//                }
-//                else
-//                {
-//                    stopRecording();
-//                    isRecording = false;
-//                    recordButton.setText("녹음");
-//                }
-//            }
-//        });
+        recordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!isRecording)
+                {
+                    recordAudio();
+                    isRecording = true;
+                    recordButton.setText("중지");
+                }
+                else
+                {
+                    stopRecording();
+                    isRecording = false;
+                    recordButton.setText("녹음");
+                }
+            }
+        });
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -135,7 +134,6 @@ public class RecordPlayActivity extends AppCompatActivity {
     }
 
     //record audio
-    /*
     public void recordAudio()
     {
         releaseDispatcher();
@@ -169,7 +167,7 @@ public class RecordPlayActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-     */
+
 
     public void stopRecording()
     {
